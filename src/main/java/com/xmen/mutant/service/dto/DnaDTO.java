@@ -1,10 +1,11 @@
 package com.xmen.mutant.service.dto;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
-import java.util.Objects;
 
 public class DnaDTO {
 
+    @NotEmpty
     private List<String> dna;
 
     public DnaDTO(List<String> dna) {
@@ -22,23 +23,4 @@ public class DnaDTO {
         this.dna = dna;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof DnaDTO)) return false;
-        DnaDTO dnaDTO = (DnaDTO) o;
-        return Objects.equals(dna, dnaDTO.dna);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(dna);
-    }
-
-    @Override
-    public String toString() {
-        return "DnaDTO{" +
-                "dna=" + dna +
-                '}';
-    }
 }

@@ -12,15 +12,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class MutantServiceImpl implements MutantService {
 
     private static final Logger log = LoggerFactory.getLogger(MutantServiceImpl.class);
 
-    private static final Set<Character> validChars = Set.of('A', 'T', 'C', 'G');
+    private static final String DNA_WORD_REGEX = "^([ATGC]*)$";
+    private static final int MIN_SIZE = 4;
+
 
     @Autowired
     private DnaTestRepository dnaResultRepository;
@@ -32,11 +32,9 @@ public class MutantServiceImpl implements MutantService {
     @Override
     public boolean isMutant(List<String> dna) {
         final int maxY = dna.size();
-        if (maxY == 0) {
-            throw new ValidationDNAException("Empty matrix");
-        }
         final int maxX = dna.get(0).toCharArray().length;
 
+        validateDna(dna);
         final boolean isMutant = checkMutant(dna, maxY, maxX);
 
         this.save(dna, isMutant);
@@ -49,22 +47,15 @@ public class MutantServiceImpl implements MutantService {
             int dx = d[0];
             int dy = d[1];
             for (int y = 0; y < maxY; y++) {
-                if (dna.get(y).toCharArray().length != maxY) {
-                     throw new ValidationDNAException(String.format("Not square matrix. x=%s, y=%s", dna.get(y).toCharArray().length, maxY));
-                }
                 for (int x = 0; x < maxX; x++) {
                     int lastX = x + 3 * dx;
                     int lastY = y + 3 * dy;
                     if (0 <= lastX && lastX < maxX && 0 <= lastY && lastY < maxY) {
                         char n = dna.get(y).charAt(x);
-                        if (validChars.contains(n)) {
-                            if (n == dna.get(y + dy).charAt(x + dx) &&
-                                    n == dna.get(y + 2 * dy).charAt(x + 2 * dx) &&
-                                    n == dna.get(lastY).charAt(lastX)) {
-                                return true;
-                            }
-                        } else {
-                            throw new ValidationDNAException(String.format("Matrix contain an invalid char %s", n));
+                        if (n == dna.get(y + dy).charAt(x + dx) &&
+                                n == dna.get(y + 2 * dy).charAt(x + 2 * dx) &&
+                                n == dna.get(lastY).charAt(lastX)) {
+                            return true;
                         }
                     }
                 }
@@ -72,6 +63,25 @@ public class MutantServiceImpl implements MutantService {
         }
         return false;
     }
+
+    private static void validateDna(List<String> dna) {
+        if (!isSquareMatrix(dna)) {
+            throw new ValidationDNAException("Not square matrix");
+        }
+        if (dna.size() < MIN_SIZE ) {
+            throw new ValidationDNAException("DNA sequence to small, must be at least: "
+                    + (MIN_SIZE ) + "x" + (MIN_SIZE ));
+        }
+        if (dna.parallelStream().anyMatch(dnaRow -> !dnaRow.matches(DNA_WORD_REGEX))) {
+            throw new ValidationDNAException("Matrix contain an invalid character must be contains only A, T, C or G.");
+        }
+    }
+
+    private static boolean isSquareMatrix(List<String> dna) {
+        final int rowAmount = dna.size();
+        return dna.stream().noneMatch(row -> row.length() != rowAmount);
+    }
+
 
     @Async
     @Override
@@ -81,9 +91,7 @@ public class MutantServiceImpl implements MutantService {
         final String dnaAsString = String.join("", dna);
         DnaTest dnaResult = dnaResultRepository.findByDna(dnaAsString);
 
-        if (dnaResult != null) {
-            log.info("Dna {} already exist in the db", dna);
-        } else {
+        if (dnaResult == null) {
             try {
                 dnaResultRepository.save(new DnaTest(dnaAsString, isMutant));
                 log.info("Saved Dna: {} using async thread: {}", dna, Thread.currentThread());
@@ -91,6 +99,8 @@ public class MutantServiceImpl implements MutantService {
             } catch (DataAccessException e) {
                 log.error("Error occurred while executing async saving in thread {}", Thread.currentThread());
             }
+        } else {
+            log.info("Dna {} exist in the db", dna);
         }
 
     }

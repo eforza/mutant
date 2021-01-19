@@ -24,11 +24,4 @@ public class StatsDTO {
         return ((double) count_mutant_dna / count_human_dna);
     }
 
-    @Override
-    public String toString() {
-        return "StatsDTO{" +
-                "count_mutant_dna=" + count_mutant_dna +
-                ", count_human_dna=" + count_human_dna +
-                '}';
-    }
 }

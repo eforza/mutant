@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.http.MediaType;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -65,6 +66,7 @@ public class DnaStatsServiceTest {
         when(dnaTestRepository.countByIsMutant(true)).thenReturn(0L);
         StatsDTO stats = statsService.getStats();
 
+        assertNotNull(stats);
         assertEquals(1, stats.getCount_human_dna());
         assertEquals(0, stats.getCount_mutant_dna());
         assertEquals(0.0, stats.getRatio(), 0.0);
@@ -81,6 +83,7 @@ public class DnaStatsServiceTest {
         when(dnaTestRepository.countByIsMutant(true)).thenReturn(0L);
         StatsDTO stats = statsService.getStats();
 
+        assertNotNull(stats);
         assertEquals(0, stats.getCount_human_dna());
         assertEquals(0, stats.getCount_mutant_dna());
         assertEquals(0.0, stats.getRatio(), 0.0);
