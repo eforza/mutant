@@ -29,12 +29,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 public class MutantResourceTest {
 
-    private final List<String> dnaMutant = Arrays.asList("ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCCCTA", "TCACTG");
+    private final List<String> dnaMutant = Arrays.asList("ATGCGA","CAGTGC","TTATGT","AGAAGG","CCCCTA","TCACTG");
     private final List<String> dnaHuman = Arrays.asList("ATGCGT", "CTGTAC", "TTAAGT", "AGAAGG", "CCTCTA", "TCACTG");
+    private final List<String> humanOneMatchOnly = Arrays.asList("TAGTGC", "TTATGT", "CGACGG", "GAGTCA", "TCACTG", "AAAAAA");
+
     private final List<String> dnaMutantDiagonal = Arrays.asList("ATGCGA", "CAGTGC", "TTATGT", "AGAAGG", "CCTCTA", "TCACTG");
-    private final List<String> dnaMutantDiagonalRight = Arrays.asList("ATGCGA", "CTGTAC", "TTAAGT", "AGAAGG", "CCTCTA", "TCACTG");
-    private final List<String> dnaMutantHorizontal = Arrays.asList("ATGCGA", "CAGTGC", "TTATGT", "AGATGG", "CCCCTA", "TCACTG");
-    private final List<String> dnaMutantVertical = Arrays.asList("ATGCGA", "CTGTGC", "TTATGT", "AGATGG", "CCCTTA", "TCACTG");
+    private final List<String> dnaMutantDiagonalRight = Arrays.asList("ATGCGA", "CTGTAC", "TTAAGT", "AGAAGG", "CCTCTA", "AAAATC");
+    private final List<String> dnaMutantHorizontal = Arrays.asList("AAAAAA", "CAGTGC", "TTATGT", "AGATGG", "CCCCTA", "AAAAAA");
+    private final List<String> dnaMutantVertical = Arrays.asList("ATGCGA", "ATGTGC", "ATATGG", "AGATAG", "CCCATG", "TCACTG");
+    private final List<String> dnaMutantVerticalHorizontal = Arrays.asList("AAAAAA", "ATGTGC", "GTATGG", "AGATAG", "CCCATG", "TCACTG");
+    private final List<String> dnaMutantDiagonalDioagonalHorizontal= Arrays.asList("TAGTGC", "TTATGT", "AGACGG", "GAGTCA", "TCACTG", "AAAAAA");
+
     private final List<String> emptyList = Arrays.asList();
     private final List<String> notSquareMatrix = Arrays.asList("ATGCGA", "CTGTAC", "TTAAGT", "AGAAGG", "CCTCTA", "CCTCTA", "TCACTG");
     private final List<String> smallMatrix = Arrays.asList("ATG", "CTG", "TTA");
@@ -113,6 +118,17 @@ public class MutantResourceTest {
     }
 
     @Test
+    public void isMutantVerticalHorizontal() throws Exception {
+        DnaDTO request = new DnaDTO(dnaMutantVerticalHorizontal);
+
+        mutantResourceMockMvc.perform(post("/mutant")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(TestUtil.convertObjectToJsonBytes(request)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     public void isMutantTestDiagonal() throws Exception {
         DnaDTO request = new DnaDTO(dnaMutantDiagonal);
 
@@ -127,6 +143,18 @@ public class MutantResourceTest {
     @Test
     public void isHuman() throws Exception {
         DnaDTO request = new DnaDTO(dnaHuman);
+
+        mutantResourceMockMvc.perform(post("/mutant")
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(TestUtil.convertObjectToJsonBytes(request)))
+                .andExpect(status().isForbidden());
+
+    }
+
+    @Test
+    public void isHumanOneMatchOnly() throws Exception {
+        DnaDTO request = new DnaDTO(humanOneMatchOnly);
 
         mutantResourceMockMvc.perform(post("/mutant")
                 .contentType(MediaType.APPLICATION_JSON)

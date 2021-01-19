@@ -1,5 +1,6 @@
 package com.xmen.mutant.service.impl;
 
+import com.xmen.mutant.matrix.MatrixOperations;
 import com.xmen.mutant.model.DnaTest;
 import com.xmen.mutant.repository.DnaTestRepository;
 import com.xmen.mutant.service.MutantService;
@@ -12,6 +13,9 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class MutantServiceImpl implements MutantService {
@@ -20,6 +24,7 @@ public class MutantServiceImpl implements MutantService {
 
     private static final String DNA_WORD_REGEX = "^([ATGC]*)$";
     private static final int MIN_SIZE = 4;
+    public static final String DNA_MUTANT = ".*(AAAA|CCCC|GGGG|TTTT).*";
 
 
     @Autowired
@@ -31,38 +36,54 @@ public class MutantServiceImpl implements MutantService {
 
     @Override
     public boolean isMutant(List<String> dna) {
-        final int maxY = dna.size();
-        final int maxX = dna.get(0).toCharArray().length;
+
 
         validateDna(dna);
-        final boolean isMutant = checkMutant(dna, maxY, maxX);
+        final boolean isMutant = checkMutant(dna);
 
         this.save(dna, isMutant);
         return isMutant;
     }
 
-    private boolean checkMutant(List<String> dna, int maxY, int maxX) {
-        int[][] directions = {{1, 0}, {1, -1}, {1, 1}, {0, 1}};
-        for (int[] d : directions) {
-            int dx = d[0];
-            int dy = d[1];
-            for (int y = 0; y < maxY; y++) {
-                for (int x = 0; x < maxX; x++) {
-                    int lastX = x + 3 * dx;
-                    int lastY = y + 3 * dy;
-                    if (0 <= lastX && lastX < maxX && 0 <= lastY && lastY < maxY) {
-                        char n = dna.get(y).charAt(x);
-                        if (n == dna.get(y + dy).charAt(x + dx) &&
-                                n == dna.get(y + 2 * dy).charAt(x + 2 * dx) &&
-                                n == dna.get(lastY).charAt(lastX)) {
-                            return true;
-                        }
-                    }
-                }
-            }
+    private boolean checkMutant(List<String> dna) {
+
+        Pattern pattern = Pattern.compile(DNA_MUTANT);
+
+        //horizontal
+        int mutantCount = dna.stream()
+                .filter(pattern.asPredicate())
+                .collect(Collectors.toList()).size();
+        if (mutantCount > 1) {
+            return true;
+        }
+
+        //vertical
+        mutantCount += MatrixOperations.transpose(dna).stream()
+                .filter(pattern.asPredicate())
+                .collect(Collectors.toList()).size();
+        if (mutantCount > 1) {
+            return true;
+        }
+
+        //diagonal
+        mutantCount += MatrixOperations.diagonalsLeftToBotton(dna).stream()
+                .filter(pattern.asPredicate())
+                .collect(Collectors.toList()).size();
+        if (mutantCount > 1) {
+            return true;
+        }
+        //diagional from left top
+        mutantCount += MatrixOperations.diagonalsLeftToTop(dna).stream()
+                .filter(pattern.asPredicate())
+                .collect(Collectors.toList()).size();
+        if (mutantCount > 1) {
+            return true;
         }
         return false;
+
     }
+
+
 
     private static void validateDna(List<String> dna) {
         if (!isSquareMatrix(dna)) {
