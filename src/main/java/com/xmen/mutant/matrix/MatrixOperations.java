@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * TODO: write a clear description of what this class is all about.
+ * Matrix uitls methods.
  *
  * @author esteban
  */
@@ -24,7 +24,7 @@ public class MatrixOperations {
         }
         return transposedList;
     }
-    public static List<String> diagonalsLeftToBotton(List<String> grid) {
+    public static List<String> diagonalsLeftToBottom(List<String> grid) {
         List<String> diagonals = new ArrayList<>();
 
         for (int j = 0; j <= grid.size() + grid.size() - 2; j++) {

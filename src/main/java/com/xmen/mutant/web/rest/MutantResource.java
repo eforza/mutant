@@ -19,7 +19,7 @@ public class MutantResource {
 
     private static final Logger log = LoggerFactory.getLogger(MutantResource.class);
 
-    private MutantService mutantService;
+    private final MutantService mutantService;
 
     public MutantResource(MutantService mutantService) {
         this.mutantService = mutantService;

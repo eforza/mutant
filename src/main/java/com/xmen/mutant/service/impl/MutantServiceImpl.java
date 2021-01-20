@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -65,8 +64,8 @@ public class MutantServiceImpl implements MutantService {
             return true;
         }
 
-        //diagonal
-        mutantCount += MatrixOperations.diagonalsLeftToBotton(dna).stream()
+        //diagonal left to bottom
+        mutantCount += MatrixOperations.diagonalsLeftToBottom(dna).stream()
                 .filter(pattern.asPredicate())
                 .collect(Collectors.toList()).size();
         if (mutantCount > 1) {

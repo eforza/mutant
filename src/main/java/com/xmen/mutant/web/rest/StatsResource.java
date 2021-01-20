@@ -15,7 +15,7 @@ public class StatsResource {
     }
 
     @GetMapping(value = "/stats", produces = "application/json")
-    public StatsDTO getMutantStatistics() {
+    public StatsDTO getStats() {
         return dnaStatsService.getStats();
     }
 
